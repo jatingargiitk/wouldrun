@@ -36,6 +36,9 @@ def build_parser():
                         "would not run, which strands the PR")
     p.add_argument("--expect-run", action="append", default=[], metavar="WORKFLOW",
                    help="workflow file name or `name:` that must RUN; repeatable. Exit 1 otherwise")
+    p.add_argument("-v", "--verbose", action="store_true",
+                   help="list workflows that don't mention the event one by one (text output; "
+                        "JSON always lists every workflow)")
     p.add_argument("--format", choices=["text", "json"], default="text")
     p.add_argument("--color", choices=["auto", "always", "never"], default="auto")
     return p
@@ -109,7 +112,7 @@ def main(argv=None):
     else:
         color = args.color == "always" or (
             args.color == "auto" and sys.stdout.isatty() and "NO_COLOR" not in os.environ)
-        print(report.render_text(ctx, results, required, color, expect))
+        print(report.render_text(ctx, results, required, color, expect, args.verbose))
 
     failed = any(r["state"] == "stranded" for r in required) or any(not e["ok"] for e in expect)
     return 1 if failed else 0

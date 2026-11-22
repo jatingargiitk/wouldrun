@@ -35,7 +35,8 @@ class Context:
 
 
 class Decision:
-    def __init__(self, status, reason, details=None):
+    def __init__(self, status, reason, details=None, unlisted=False):
+        self.unlisted = unlisted      # True when the event simply isn't in `on:`
         self.status = status
         self.reason = reason          # the deciding filter / explanation, one line
         self.details = details or []  # extra lines: what matched what
@@ -149,7 +150,8 @@ def evaluate(wf, ctx):
     event = ctx.event
     if event not in wf.events:
         listed = ", ".join(sorted(wf.events)) or "nothing"
-        return Decision(NOT_TRIGGERED, "`on:` does not list '%s' (it lists: %s)" % (event, listed))
+        return Decision(NOT_TRIGGERED, "`on:` does not list '%s' (it lists: %s)" % (event, listed),
+                        unlisted=True)
     cfg = wf.events[event]
     cfg = cfg if isinstance(cfg, dict) else {}
 

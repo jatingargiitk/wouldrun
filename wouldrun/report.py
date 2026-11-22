@@ -1,6 +1,7 @@
 """Human and JSON output."""
 
 import json
+import os
 
 from . import evaluate as ev
 
@@ -29,10 +30,12 @@ def describe_context(ctx):
     return ", ".join(parts)
 
 
-def render_text(ctx, results, required, color=False, expect=None):
+def render_text(ctx, results, required, color=False, expect=None, verbose=False):
     lines = ["wouldrun: " + describe_context(ctx), ""]
-    width = max([len(d.status) for _, d in results] + [3])
-    for wf, d in results:
+    hidden = [] if verbose else [wf for wf, d in results if d.unlisted]
+    shown = [(wf, d) for wf, d in results if verbose or not d.unlisted]
+    width = max([len(d.status) for _, d in shown] + [3])
+    for wf, d in shown:
         head = "%s  %s" % (_c(d.status.ljust(width), d.status, color), wf.file)
         if wf.name:
             head += '  "%s"' % wf.name
@@ -41,6 +44,11 @@ def render_text(ctx, results, required, color=False, expect=None):
         lines.append(pad + d.reason)
         for extra in d.details:
             lines.append(pad + "  " + extra)
+    if hidden:
+        lines.append("%s  %d workflow%s do not list '%s' in `on:` (--verbose lists them): %s" % (
+            _c(ev.NOT_TRIGGERED.ljust(width), ev.NOT_TRIGGERED, color), len(hidden),
+            "" if len(hidden) == 1 else "s", ctx.event,
+            ", ".join(os.path.basename(wf.file) for wf in hidden)))
     if not results:
         lines.append("no workflow files found in .github/workflows")
     if required:

@@ -1,0 +1,10 @@
+name: Lint
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths: ['**.py']
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo lint

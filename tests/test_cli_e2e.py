@@ -180,3 +180,16 @@ def test_module_entrypoint(tmp_path):
 def test_missing_workflows_dir(tmp_path, capsys):
     assert main(["--repo", str(tmp_path), "-r", "main"]) == 0
     assert "no workflow files found" in capsys.readouterr().out
+
+
+def test_unlisted_workflows_are_folded_unless_verbose(tmp_path, capsys):
+    repo = make_repo(tmp_path)
+    main(["--repo", str(repo), "-e", "push", "-r", "main"])
+    out = capsys.readouterr().out
+    assert "2 workflows do not list 'push'" in out and "ci.yml, docs.yml" in out
+    main(["--repo", str(repo), "-e", "push", "-r", "main", "-v"])
+    out = capsys.readouterr().out
+    assert "do not list" not in out
+    assert out.count("NOT-TRIGGERED-BY-EVENT") == 2
+    main(["--repo", str(repo), "-e", "push", "-r", "main", "--format", "json"])
+    assert len(json.loads(capsys.readouterr().out)["workflows"]) == 3
