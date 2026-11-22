@@ -27,15 +27,15 @@ jobs:
       - run: python -m pip install -e .
       - name: README output blocks match real output
         run: python scripts/check_readme.py
-  install-from-git:
+  install-via-pip-git:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install the way the README says and run the CLI
+      - name: pip install from a git URL (the local checkout) and run the CLI
         run: |
-          python -m pip install "git+https://github.com/${GITHUB_REPOSITORY}@${GITHUB_SHA}"
+          python -m pip install "git+file://${GITHUB_WORKSPACE}@${GITHUB_SHA}"
           wouldrun --version
           wouldrun --repo examples/repo -e push -r main --files src/app.py
